@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/CustomerService/CustomerService.iml" filepath="$PROJECT_DIR$/CustomerService/CustomerService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/OrderService/OrderService.iml" filepath="$PROJECT_DIR$/OrderService/OrderService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/RestaurantService/RestaurantService.iml" filepath="$PROJECT_DIR$/RestaurantService/RestaurantService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/TableService/TableService.iml" filepath="$PROJECT_DIR$/TableService/TableService.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/fullstack-services.iml" filepath="$PROJECT_DIR$/.idea/fullstack-services.iml" />
+    </modules>
+  </component>
+</project>
