@@ -2,12 +2,9 @@ package com.fullstack.customerservice.DomainLogic;
 
 import com.fullstack.customerservice.DBAccessEntities.Customer;
 import com.fullstack.customerservice.Repositories.CustomerRepository;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,29 +18,29 @@ public class CustomerLogic {
         return customerRepository.findAll();
     }
 
-    public Customer seatNewCustomer(Customer customer){ return customerRepository.save(customer); }
+    public Boolean customerExists(String firstName){
+        return customerRepository.existsByFirstName(firstName);
+    }
+
+    public Optional<Customer> getCustomerByFirstName(String firstName){
+        return customerRepository.getCustomerByFirstName(firstName);
+    }
+
+    public Customer insertCustomer(String firstName, String address, Float cash, Integer tableNumber){
+        Customer newCustomer = Customer.builder()
+                .firstName(firstName)
+                .address(address)
+                .cash(cash)
+                .tableNumber(tableNumber).build();
+        return customerRepository.save(newCustomer);
+    }
 
     public boolean bootByFirstName(String firstName){
         customerRepository.deleteByFirstName(firstName);
         return (!customerRepository.existsByFirstName(firstName));
     }
 
-    public List<Customer> getCustomersAtTable(Integer tableNumber){
-        List<Customer> result = new ArrayList<>();
-        List<Customer> allCustomers;
-
-        try{
-            allCustomers = customerRepository.findAll();
-        } catch (RuntimeException e){
-            throw new RuntimeException("Failed to get full list of customers");
-        }
-
-        for(Customer customer:allCustomers){
-            if(customer.getTableNumber().equals(tableNumber)){
-                result.add(customer);
-            }
-        }
-
-        return  result;
+    public Optional<List<Customer>> getCustomersAtTable(Integer tableNumber){
+        return customerRepository.getCustomersByTableNumber(tableNumber);
     }
 }

@@ -13,11 +13,11 @@
         <module name="TableService" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="CustomerService" target="11" />
-      <module name="OrderService" target="11" />
-      <module name="RestaurantService" target="11" />
-      <module name="TableService" target="11" />
+    <bytecodeTargetLevel target="17">
+      <module name="CustomerService" target="17" />
+      <module name="OrderService" target="17" />
+      <module name="RestaurantService" target="17" />
+      <module name="TableService" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

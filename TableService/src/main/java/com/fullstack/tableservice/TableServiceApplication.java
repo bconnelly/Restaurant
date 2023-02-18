@@ -35,4 +35,13 @@ public class TableServiceApplication extends SpringBootServletInitializer {
         }
     }
 
+    @GetMapping(path = "/tableExists")
+    public ResponseEntity<Boolean> tableExists(Integer tableNumber){
+        try{
+            return ResponseEntity.status(HttpStatus.OK).body(tableLogic.tableExists(tableNumber));
+        } catch(RuntimeException e){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
 }

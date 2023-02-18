@@ -35,7 +35,7 @@ public class OrderLogicTests {
                 .tableNumber(1)
                 .bill(12.34f)
                 .dish("some food").build();
-        Order submittedOrder = orderLogic.submitOrder(orderLogic.submitOrder(newOrder));
+        Order submittedOrder = orderLogic.insertOrder(orderLogic.insertOrder(newOrder));
         assert (newOrder.equals(submittedOrder));
     }
 }

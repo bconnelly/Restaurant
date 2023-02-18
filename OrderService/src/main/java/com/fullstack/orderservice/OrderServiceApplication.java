@@ -5,7 +5,6 @@ import com.fullstack.orderservice.DomainLogic.OrderLogic;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Optional;
 
 @EnableTransactionManagement
 @RestController
@@ -36,18 +36,18 @@ public class OrderServiceApplication extends SpringBootServletInitializer {
 
 		try{
 			orders = orderLogic.getAllOrders();
+			if(orders.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+			else return ResponseEntity.status(HttpStatus.OK).body(orders);
 		} catch (RuntimeException e){
-			throw new RuntimeException("Failed to get orders from restaurant | " + e);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
-
-		return new ResponseEntity(orders, HttpStatus.OK);
 	}
 
-	@PostMapping(path = "/submitOrder")
-	public ResponseEntity<Order> submitOrder(@RequestParam(value = "firstName") String firstName,
-									  @RequestParam(value = "tableNumber")Integer tableNumber,
-									  @RequestParam(value = "dish") String dish,
-									  @RequestParam(value = "bill") Float bill){
+	@PostMapping(path = "/insertOrder")
+	public ResponseEntity<Order> insertOrder(@RequestParam(value = "firstName") String firstName,
+											 @RequestParam(value = "tableNumber")Integer tableNumber,
+											 @RequestParam(value = "dish") String dish,
+											 @RequestParam(value = "bill") Float bill){
 
 		Order order = Order.builder()
 				.firstName(firstName)
@@ -57,8 +57,20 @@ public class OrderServiceApplication extends SpringBootServletInitializer {
 				.build();
 
 		try{
-			return ResponseEntity.status(HttpStatus.OK).body(orderLogic.submitOrder(order));
+			return ResponseEntity.status(HttpStatus.OK).body(orderLogic.insertOrder(order));
 		}catch (RuntimeException e){
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
+
+	@GetMapping("/getOrdersByFirstName")
+	public ResponseEntity<Order> getOrdersByFirstName(@RequestParam(value = "firstName") String firstName){
+
+		try{
+			Optional<Order> returnedOrder = orderLogic.getOrderByFirstName(firstName);
+			return returnedOrder.map(order -> ResponseEntity.status(HttpStatus.OK).body(order)).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+
+		} catch (RuntimeException e){
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
 	}

@@ -17,4 +17,7 @@ public class TableLogic {
         return tableRepository.findAll();
     }
 
+    public Boolean tableExists(Integer tableNumber){
+        return tableRepository.existsByTableNumber(tableNumber);
+    }
 }

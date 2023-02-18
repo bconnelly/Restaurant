@@ -3,8 +3,8 @@ package com.fullstack.orderservice.DBAccessEntities;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
-import javax.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.persistence.Table;
 
 @Setter
 @Getter

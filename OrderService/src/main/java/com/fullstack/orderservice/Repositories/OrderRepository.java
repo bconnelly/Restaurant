@@ -9,12 +9,7 @@ import java.util.Optional;
 
 public interface OrderRepository extends JpaRepository<Order, Integer> {
     List<Order> findAll();
-    Order save(Order order);
-
-
-    //only for debugging
+    Optional<Order> findByFirstName(String firstName);
     Optional<Order> findById(Integer id);
-    @Transactional
-    void deleteById(Integer id);
 
 }

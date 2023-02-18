@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 /*
 api returns response entities with a customer or list of customers and an HTTP status.
@@ -27,37 +28,42 @@ public class CustomerServiceApplication extends SpringBootServletInitializer {
 	@Autowired
 	private CustomerLogic customerLogic;
 
-//	@Override
-//	protected SpringApplicationBuilder configure(SpringApplicationBuilder builder){
-//		return builder.sources(CustomerServiceApplication.class);
-//	}
-
 	@GetMapping(path = "/getAllCustomers")
 	public ResponseEntity<List<Customer>> getAllCustomers(){
-
 		try{
 			return ResponseEntity.status(HttpStatus.OK).body(customerLogic.getAllCustomers());
 		}catch(RuntimeException e){
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
-
 	}
 
-	@PostMapping(path = "/seatCustomer")
-	public ResponseEntity<Customer> seatCustomer(@RequestParam(value = "firstName") String firstName,
-									   @RequestParam(value = "address") String address,
-									   @RequestParam(value = "tableNumber") Integer tableNumber,
-									   @RequestParam(value = "cash") Float cash){
-
-
-		Customer newCustomer = new Customer();
-			newCustomer.setFirstName(firstName);
-			newCustomer.setAddress(address);
-			newCustomer.setTableNumber(tableNumber);
-			newCustomer.setCash(cash);
+	@GetMapping(path = "/getCustomerByFirstName")
+	public ResponseEntity<Customer> getCustomerByFirstName(String firstName){
 		try{
-			return ResponseEntity.status(HttpStatus.OK).body(customerLogic.seatNewCustomer(newCustomer));
-		}catch(RuntimeException e){
+			Optional<Customer> customerReturned = customerLogic.getCustomerByFirstName(firstName);
+			return customerReturned.map(customer -> ResponseEntity.status(HttpStatus.OK).body(customer)).orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
+		} catch(RuntimeException e){
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
+
+	@GetMapping(path = "/customerExists")
+	public ResponseEntity<Boolean> customerExists(String firstName){
+		try{
+			return ResponseEntity.status(HttpStatus.OK).body(customerLogic.customerExists(firstName));
+		} catch (RuntimeException e){
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
+
+	@PostMapping(path = "/insertCustomer")
+	public ResponseEntity<Customer> insertCustomer(@RequestParam(value = "firstName")String firstName,
+												   @RequestParam(value = "address")String address,
+												   @RequestParam(value = "cash")Float cash,
+												   @RequestParam(value = "tableNumber")Integer tableNumber){
+		try{
+			return ResponseEntity.status(HttpStatus.OK).body(customerLogic.insertCustomer(firstName, address, cash, tableNumber));
+		} catch (RuntimeException e){
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
 
@@ -72,22 +78,22 @@ public class CustomerServiceApplication extends SpringBootServletInitializer {
 			}else{
 				throw new RuntimeException("Entity still exists after deletion attempt");
 			}
-		}catch(RuntimeException e){
+		} catch (RuntimeException e){
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
 	}
 
 	@GetMapping(path = "/getCustomerAtTable")
 	public ResponseEntity<List<Customer>> getCustomerAtTable(@RequestParam(value = "tableNumber") Integer tableNumber){
-		List<Customer> customers;
+		Optional<List<Customer>> customersReturned;
 
 		try{
-			customers = customerLogic.getCustomersAtTable(tableNumber);
+			customersReturned = customerLogic.getCustomersAtTable(tableNumber);
+			return customersReturned.map(customers -> ResponseEntity.status(HttpStatus.OK).body(customers)).orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(null));
+
 		} catch (RuntimeException e){
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
-
-		return ResponseEntity.status(HttpStatus.OK).body(customers);
 	}
 
 }

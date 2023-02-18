@@ -7,7 +7,7 @@
         <packaging>war</packaging>
       </options>
     </properties>
-    <root id="archive" name="OrderService-0.0.1-SNAPSHOT.war">
+    <root id="archive" name="OrderService-0.0.1.war">
       <element id="artifact" artifact-name="OrderService:war exploded" />
     </root>
   </artifact>

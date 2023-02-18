@@ -2,8 +2,8 @@ package com.fullstack.customerservice.DBAccessEntities;
 
 import lombok.*;
 
-import javax.persistence.*;
-import javax.persistence.Table;
+import jakarta.persistence.*;
+import jakarta.persistence.Table;
 
 @Setter
 @Getter

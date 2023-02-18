@@ -8,15 +8,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CustomerRepository extends JpaRepository<Customer, Integer> {
-    List<Customer> findAll();
 
-    Customer save(Customer customer);
+    List<Customer> findAll();
+    Optional<List<Customer>> getCustomersByTableNumber(Integer tableNumber);
+    Optional<Customer> getCustomerByFirstName(String firstName);
     @Transactional
     void deleteByFirstName(String firstName);
     boolean existsByFirstName(String firstName);
-
-    //only for debugging
-    @Transactional
-    void deleteById(Integer id);
-    Optional<Customer> findById(Integer id);
 }

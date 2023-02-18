@@ -27,13 +27,8 @@ public class CustomerLogicTest {
 
     @Test
     void seatNewCustomer() {
-        Customer newCustomer = Customer.builder().
-                firstName("person4")
-                .tableNumber(10)
-                .cash(12.34f)
-                .address("address4").build();
-        Customer customer = customerLogic.seatNewCustomer(newCustomer);
-        assert(newCustomer.equals(customer));
+        Customer customer = customerLogic.insertCustomer("person4", "address4", 12.34f, 10);
+        assert(customerLogic.customerExists("person4"));
     }
 
     @Test

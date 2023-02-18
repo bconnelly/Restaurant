@@ -3,7 +3,7 @@ package com.fullstack.tableservice.DBAccessEntities;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 @Setter
 @Getter
@@ -12,7 +12,7 @@ import javax.persistence.*;
 @Builder
 
 @Entity
-@javax.persistence.Table(name = "tables")
+@jakarta.persistence.Table(name = "tables")
 public class Table {
 
     @Id
