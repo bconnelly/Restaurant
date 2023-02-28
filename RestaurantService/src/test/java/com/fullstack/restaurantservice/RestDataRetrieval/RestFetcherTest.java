@@ -7,7 +7,7 @@ import com.fullstack.restaurantservice.DataEntities.CustomerRecord;
 
 import com.fullstack.restaurantservice.DataEntities.OrderRecord;
 import com.fullstack.restaurantservice.DataEntities.TableRecord;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.Mock;
@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(TestInstance.Lifecycle.PER_METHOD)
 class RestFetcherTest {
 
     @Mock
@@ -35,9 +36,9 @@ class RestFetcherTest {
     @Autowired
     RestFetcher restFetcher;
 
-    @BeforeAll
+    @BeforeEach
     void setup(){
-        restFetcher.setTemplate(template);
+        ReflectionTestUtils.setField(restFetcher, "template", template);
     }
 
     @Test
@@ -132,4 +133,6 @@ class RestFetcherTest {
         verify(template, times(1)).getForObject(anyString(), eq(TableRecord[].class));
         assertEquals(new ArrayList<>(Arrays.asList(expectedTables)), returnedTables);
     }
+
+
 }

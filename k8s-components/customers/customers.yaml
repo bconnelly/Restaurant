@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: customers-deployment
+  namespace: dev
+  labels:
+    app: customers
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: customers
+  template:
+    metadata:
+      labels:
+        app: customers
+    spec:
+      containers:
+        - name: customers-container
+          imagePullPolicy: Always
+          image: bryan949/fullstack-customers:latest
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            exec:
+              command:
+                - touch
+                - healthy
+          env:
+            - name: JDBC_DATASOURCE_CUSTOMERS
+              valueFrom:
+                configMapKeyRef:
+                  name: fullstack-config
+                  key: JDBC_DATASOURCE_CUSTOMERS
+            - name: JDBC_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fullstack-secret
+                  key: JDBC_USER
+            - name: JDBC_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: fullstack-secret
+                  key: JDBC_PASS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: customers-service
+  namespace: dev
+  labels:
+    app: customers
+spec:
+  type: ClusterIP
+  selector:
+    app: customers
+  ports:
+    - protocol: TCP
+      #service's port that pods use to interact
+      port: 80
+      #pod port
+      targetPort: 80

@@ -1,0 +1,95 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: restaurant-deployment
+  namespace: dev
+  labels:
+    app: restaurant
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: restaurant
+  template:
+    metadata:
+      labels:
+        app: restaurant
+    spec:
+      containers:
+        - name: restaurant-container
+          imagePullPolicy: Always
+          image: bryan949/fullstack-restaurant:latest
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            exec:
+              command:
+                - touch
+                - healthy
+          env:
+            - name: CUSTOMERS_GET_ALL
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: CUSTOMERS_GET_ALL
+            - name: CUSTOMERS_GET_BY_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: CUSTOMERS_GET_BY_NAME
+            - name: CUSTOMERS_EXISTS
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: CUSTOMERS_EXISTS
+            - name: CUSTOMERS_SEAT
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: CUSTOMERS_SEAT
+            - name: ORDERS_SUBMIT
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: ORDERS_SUBMIT
+            - name: TABLES_GET_ALL
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: TABLES_GET_ALL
+            - name: CUSTOMERS_SERVICE_PACKAGE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: CUSTOMERS_SERVICE_PACKAGE_NAME
+            - name: ORDERS_SERVICE_PACKAGE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: ORDERS_SERVICE_PACKAGE_NAME
+            - name: TABLES_SERVICE_PACKAGE_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: restaurant-config
+                  key: TABLES_SERVICE_PACKAGE_NAME
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: restaurant-service
+  namespace: dev
+  labels:
+    app: restaurant
+spec:
+  type: LoadBalancer
+  selector:
+    app: restaurant
+  ports:
+    - protocol: TCP
+      #service's port that pods use to interact
+      port: 80
+      #pod port
+      targetPort: 80
+      #port allowing access to service (used by minikube)
+#      nodePort: 30300

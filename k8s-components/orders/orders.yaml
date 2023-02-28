@@ -1,0 +1,63 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-deployment
+  namespace: dev
+  labels:
+    app: orders
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: orders
+  template:
+    metadata:
+      labels:
+        app: orders
+    spec:
+      containers:
+        - name: orders-container
+          imagePullPolicy: Always
+          image: bryan949/fullstack-orders:latest
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            exec:
+              command:
+                - touch
+                - healthy
+          env:
+            - name: JDBC_DATASOURCE_ORDERS
+              valueFrom:
+                configMapKeyRef:
+                  name: fullstack-config
+                  key: JDBC_DATASOURCE_ORDERS
+            - name: JDBC_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fullstack-secret
+                  key: JDBC_USER
+            - name: JDBC_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: fullstack-secret
+                  key: JDBC_PASS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-service
+  namespace: dev
+  labels:
+    app: orders
+spec:
+  type: ClusterIP
+  selector:
+    app: orders
+  ports:
+    - protocol: TCP
+      #service's port that pods use to interact
+      port: 80
+      #pod port
+      targetPort: 80

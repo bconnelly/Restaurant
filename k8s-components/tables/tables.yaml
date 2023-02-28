@@ -1,0 +1,63 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tables-deployment
+  namespace: dev
+  labels:
+    app: tables
+spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  selector:
+    matchLabels:
+      app: tables
+  template:
+    metadata:
+      labels:
+        app: tables
+    spec:
+      containers:
+        - name: tables-container
+          imagePullPolicy: Always
+          image: bryan949/fullstack-tables:latest
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            exec:
+              command:
+                - touch
+                - healthy
+          env:
+            - name: JDBC_DATASOURCE_TABLES
+              valueFrom:
+                configMapKeyRef:
+                  name: fullstack-config
+                  key: JDBC_DATASOURCE_TABLES
+            - name: JDBC_USER
+              valueFrom:
+                secretKeyRef:
+                  name: fullstack-secret
+                  key: JDBC_USER
+            - name: JDBC_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: fullstack-secret
+                  key: JDBC_PASS
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tables-service
+  namespace: dev
+  labels:
+    app: tables
+spec:
+  type: ClusterIP
+  selector:
+    app: tables
+  ports:
+    - protocol: TCP
+      #service's port that pods use to interact
+      port: 80
+      #pod port
+      targetPort: 80

@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restaurant-config
+  namespace: dev
+data:
+  CUSTOMERS_GET_ALL: /getAllCustomers
+  CUSTOMERS_GET_BY_NAME: /getCustomerByFirstName
+  CUSTOMERS_EXISTS: /customerExists
+  CUSTOMERS_SEAT: /insertCustomer
+  ORDERS_SUBMIT: /insertOrder
+  TABLES_GET_ALL: /getAllTables
+  CUSTOMERS_SERVICE_PACKAGE_NAME: CustomersService
+  ORDERS_SERVICE_PACKAGE_NAME: OrdersService
+  TABLES_SERVICE_PACKAGE_NAME: TablesService

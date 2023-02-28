@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,6 +30,17 @@ public class OrderServiceApplication extends SpringBootServletInitializer {
 	@Autowired
 	private OrderLogic orderLogic;
 
+	@GetMapping(path = "/")
+	public ResponseEntity<String> defaultEndpoint(){
+		return ResponseEntity.status(HttpStatus.OK).body("Some values:" +
+				"\nCUSTOMERS_GET_ALL: " + System.getenv("CUSTOMERS_GET_ALL") +
+				"\nJDBC_USER: " + System.getenv("JDBC_USER") +
+				"\nORDERS_SUBMIT: " + System.getenv("ORDERS_SUBMIT") +
+				"\nCUSTOMERS_SERVICE_SERVICE_HOST: " + System.getenv("CUSTOMERS_SERVICE_SERVICE_HOST") +
+				"\nCUSTOMERS_SERVICE_SERVICE_PORT: " + System.getenv("CUSTOMERS_SERVICE_SERVICE_PORT") +
+				"\nPATH: " + System.getenv("Path"));
+	}
+
 	@GetMapping(path = "/getAllOrders")
 	public ResponseEntity<List<Order>> getAllOrders(){
 
@@ -36,7 +48,7 @@ public class OrderServiceApplication extends SpringBootServletInitializer {
 
 		try{
 			orders = orderLogic.getAllOrders();
-			if(orders.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+			if(orders.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ArrayList<>());
 			else return ResponseEntity.status(HttpStatus.OK).body(orders);
 		} catch (RuntimeException e){
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);

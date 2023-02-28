@@ -2,55 +2,50 @@ package com.fullstack.restaurantservice.DomainLogic;
 
 import com.fullstack.restaurantservice.DataEntities.*;
 import com.fullstack.restaurantservice.RestDataRetrieval.RestFetcher;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@Slf4j
 @Service
 public class RestaurantLogic {
 
     public RestaurantLogic(){}
 
     @Autowired
-    RestFetcher restFetcher;
+    private RestFetcher restFetcher;
 
     public CustomerRecord seatCustomer(String firstName, String address, Float cash){
-        return restFetcher.seatCustomer(firstName, address, cash, getOpenTables().get(0).tableNumber());
+        List<TableRecord> openTables = getOpenTables();
+
+        if(openTables == null || openTables.isEmpty()) return null;
+
+        return restFetcher.seatCustomer(firstName, address, cash, openTables.get(0).tableNumber());
     }
 
     public List<TableRecord> getOpenTables()  {
+
         List<TableRecord> allTables = restFetcher.getAllTables();
         List<CustomerRecord> allCustomers = restFetcher.getAllCustomers();
 
-        if(allTables.isEmpty()) throw new RuntimeException("no tables retrieved");
+        if(allTables.isEmpty()) return null;
 
-//        for(CustomerRecord customer:allCustomers){
-//            allTables.removeIf(n -> Objects.equals(n.tableNumber(), customer.tableNumber()));
-//            allCustomers.removeIf(n -> Objects.equals(n.tableNumber(), customer.tableNumber()));
-//        }
-        List<TableRecord> allTablesCopy = allTables;
-        for(TableRecord table:allTables){
-            for(CustomerRecord customer:allCustomers){
-                if(Objects.equals(customer.tableNumber(), table.tableNumber())){
-//                    allTables.remove(table);
-//                    allCustomers.remove(customer);
-                    allTablesCopy.remove(table);
-                    break;
-                }
-            }
+        for(CustomerRecord customer:allCustomers){
+            allTables.removeIf(n -> Objects.equals(n.tableNumber(), customer.tableNumber()));
         }
 
-        return allTablesCopy;
+        return allTables;
     }
 
     public OrderRecord submitOrder(String firstName, String dish, Integer tableNumber, Float bill){
+        if(!restFetcher.customerExists(firstName)) return null;
 
-        Boolean customerExists = restFetcher.customerExists(firstName);
-        Boolean hasSufficientCash = restFetcher.getCustomerByName(firstName).cash() > bill;
+        CustomerRecord customer = restFetcher.getCustomerByName(firstName);
 
-        if(customerExists && hasSufficientCash){
-            return restFetcher.submitOrder(firstName, dish, tableNumber, bill);
-        } else throw new RuntimeException("customer does not exists or has insufficient cash for order");
+        if(customer.cash() < bill) throw new RuntimeException("customer has insufficient funds");
+
+        return restFetcher.submitOrder(firstName, dish, tableNumber, bill);
     }
 }

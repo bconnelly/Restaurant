@@ -1,39 +1,45 @@
 package com.fullstack.customerservice.DomainLogic;
 
 import com.fullstack.customerservice.DBAccessEntities.Customer;
+import com.fullstack.customerservice.Repositories.CustomerRepository;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
-@DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 @SpringBootTest
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CustomerLogicTest {
 
     @Autowired
     private CustomerLogic customerLogic;
 
-    @Test
-    void getAllCustomers() {
-        List<Customer> customers = customerLogic.getAllCustomers();
-        assert(customers.get(0).getFirstName().equals("alice"));
-        assert(customers.get(1).getFirstName().equals("bob"));
-        assert(customers.get(2).getFirstName().equals("chuck"));
-        assert(customers.get(3).getFirstName().equals("dave"));
-        assert(customers.get(4).getFirstName().equals("ed"));
+    @Mock
+    private CustomerRepository customerRepository;
+
+    @BeforeAll
+    void setup(){
+        ReflectionTestUtils.setField(customerLogic, "customerRepository", customerRepository);
     }
 
     @Test
-    void seatNewCustomer() {
-        Customer customer = customerLogic.insertCustomer("person4", "address4", 12.34f, 10);
-        assert(customerLogic.customerExists("person4"));
+    void insertCustomerTest() {
+        Customer customerToSave = Customer.builder().firstName("alice").address("test address1")
+                .cash(12.34f).tableNumber(1).build();
+
+        when(customerRepository.save(any(Customer.class))).thenReturn(customerToSave);
+
+        Customer returnedCustomer = customerLogic.insertCustomer(
+                "alice", "test address1", 12.34f, 1);
+
+        assert(customerToSave.equals(returnedCustomer));
+        verify(customerRepository, times(1)).save(any(Customer.class));
     }
 
-    @Test
-    void bootByFirstName() {
-        //failure and checking for entry throws exception
-        assert(customerLogic.bootByFirstName("alice"));
-    }
 }

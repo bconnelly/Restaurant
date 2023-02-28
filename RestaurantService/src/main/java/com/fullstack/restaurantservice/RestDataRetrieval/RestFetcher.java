@@ -3,12 +3,11 @@ package com.fullstack.restaurantservice.RestDataRetrieval;
 import com.fullstack.restaurantservice.DataEntities.CustomerRecord;
 import com.fullstack.restaurantservice.DataEntities.OrderRecord;
 import com.fullstack.restaurantservice.DataEntities.TableRecord;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.http.*;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -17,41 +16,41 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Component
 public class RestFetcher {
 
     public RestFetcher(){
-        template = new RestTemplate();
+        this.template = new RestTemplate();
     }
+    private final RestTemplate template;
 
-    RestTemplate template;
-
-    @Value("${host.url}")
-    private String host;
-    @Value("${customer.get-all.url}")
+    @Value("${customers.get-all.endpoint}")
     private String customerGetAllUrl;
-    @Value("${customer.get-by-name.url}")
+    @Value("${customers.host.url}")
+    private String customersHost;
+    @Value("${orders.host.url}")
+    private String ordersHost;
+    @Value("${tables.host.url}")
+    private String tablesHost;
+    @Value("${customers.get-by-name.endpoint}")
     private String customerGetByNameUrl;
-    @Value("${customer.exists.url}")
+    @Value("${customers.exists.endpoint}")
     private String customerExistsUrl;
-    @Value("${customer.seat.url}")
+    @Value("${customers.seat.endpoint}")
     private String seatCustomerUrl;
-    @Value("${order.submit.url}")
+    @Value("${orders.submit.endpoint}")
     private String orderSubmitUrl;
-    @Value("${table.get-all.url}")
+    @Value("${tables.get-all.endpoint}")
     private String tableGetAllUrl;
-
-    public void setTemplate(RestTemplate template) {
-        this.template = template;
-    }
 
     public List<CustomerRecord> getAllCustomers(){
         CustomerRecord[] customerRecords;
         //make sure env variables loaded
-        if(host == null || customerGetAllUrl == null)
+        if(customersHost == null || customerGetAllUrl == null)
             throw new RuntimeException("failed to load environment");
         try{
-            customerRecords = template.getForObject(host + customerGetAllUrl, CustomerRecord[].class);
+            customerRecords = template.getForObject(customersHost + customerGetAllUrl, CustomerRecord[].class);
             if(customerRecords != null) return new ArrayList<>(Arrays.asList(customerRecords));
             else throw new RuntimeException("all customer records not retrieved");
         } catch (RestClientException e){
@@ -59,40 +58,48 @@ public class RestFetcher {
         }
     }
 
-    public CustomerRecord getCustomerByName(String firstName){
-        if(host == null || customerGetByNameUrl == null) throw new RuntimeException("failed to load environment");
-        String urlTemplate = UriComponentsBuilder.fromHttpUrl(host + customerGetByNameUrl)
+    public CustomerRecord getCustomerByName(String firstName) throws RuntimeException{
+        log.debug("name given: " + firstName);
+        log.debug("necessary fields--- customersHost: " + customersHost + ", customerGetByNameUrl: " + customerGetByNameUrl);
+        if(customersHost == null || customerGetByNameUrl == null) throw new RuntimeException("failed to load environment");
+        String urlTemplate = UriComponentsBuilder.fromHttpUrl(customersHost + customerGetByNameUrl)
                 .queryParam("firstName", firstName).encode().toUriString();
-
+        log.debug("Uri: " + urlTemplate);
         try{
             return template.getForObject(urlTemplate, CustomerRecord.class);
-        } catch (RestClientException e){
-            throw new RuntimeException(e);
+        } catch (HttpClientErrorException e){
+            if(e.getStatusCode() == HttpStatus.NOT_FOUND) return null;
+            else throw new RuntimeException(e);
         }
     }
 
     public Boolean customerExists(String firstName){
-        if(host == null || customerExistsUrl == null)  throw new RuntimeException("failed to load environment");
-        String urlTemplate = UriComponentsBuilder.fromHttpUrl(host + customerExistsUrl)
+        if(customersHost == null || customerExistsUrl == null)  throw new RuntimeException("failed to load environment");
+        String urlTemplate = UriComponentsBuilder.fromHttpUrl(customersHost + customerExistsUrl)
                 .queryParam("firstName", firstName).encode().toUriString();
         try{
             return template.getForObject(urlTemplate, Boolean.class);
-        } catch (RestClientException e){
+        } catch (RuntimeException e){
             throw new RuntimeException(e);
         }
     }
 
     public CustomerRecord seatCustomer(String firstName, String address, Float cash, Integer tableNumber){
+        log.debug("at seatCustomer");
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String urlTemplate = UriComponentsBuilder.fromHttpUrl(host + seatCustomerUrl)
+        String urlTemplate = UriComponentsBuilder.fromHttpUrl(customersHost + seatCustomerUrl)
                 .queryParam("firstName", firstName)
                 .queryParam("address", address)
                 .queryParam("cash", cash)
                 .queryParam("tableNumber", tableNumber).encode().toUriString();
 
         HttpEntity<String> request = new HttpEntity<>(headers);
+        log.debug("before post in seatCustomer");
+        log.debug("customersHost: " + customersHost);
+        log.debug("seatCustomersUrl: " + seatCustomerUrl);
+        log.debug("Uri: " + urlTemplate);
         return template.postForObject(urlTemplate, request, CustomerRecord.class);
     }
 
@@ -100,7 +107,7 @@ public class RestFetcher {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        String urlTemplate = UriComponentsBuilder.fromHttpUrl(host + orderSubmitUrl)
+        String urlTemplate = UriComponentsBuilder.fromHttpUrl(ordersHost + orderSubmitUrl)
                 .queryParam("firstName", firstName)
                 .queryParam("dish", dish)
                 .queryParam("tableNumber", tableNumber)
@@ -112,12 +119,16 @@ public class RestFetcher {
 
     public List<TableRecord> getAllTables(){
         TableRecord[] tableRecordList;
-        if(host == null || tableGetAllUrl == null) throw new RuntimeException("failed to load environment");
+        if(tablesHost == null || tableGetAllUrl == null) throw new RuntimeException("failed to load environment");
+        log.debug("calling table service at " + tablesHost + " " + tableGetAllUrl);
         try{
-            tableRecordList = template.getForObject(host + tableGetAllUrl, TableRecord[].class);
+            log.atDebug().addArgument(tablesHost).addArgument(tableGetAllUrl).setMessage("before call to table service. tablesHost: {}, tablesGetAllUrl: {}").log();
+            tableRecordList = template.getForObject(tablesHost + tableGetAllUrl, TableRecord[].class);
+            log.debug("after call to table service");
             if(tableRecordList != null) return new ArrayList<>(Arrays.asList(tableRecordList));
             else throw new RuntimeException("all table records not retrieved");
         } catch (RuntimeException e){
+            log.debug("runtime exception in restfetcher.getAllTables");
             throw new RuntimeException(e);
         }
     }

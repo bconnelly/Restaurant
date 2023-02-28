@@ -2,6 +2,7 @@ package com.fullstack.customerservice;
 
 import com.fullstack.customerservice.DBAccessEntities.Customer;
 import com.fullstack.customerservice.DomainLogic.CustomerLogic;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,6 +19,7 @@ import java.util.Optional;
 api returns response entities with a customer or list of customers and an HTTP status.
 customer is null in the case of an error
 */
+@Slf4j
 @EnableTransactionManagement
 @RestController
 @SpringBootApplication(scanBasePackages = "com.fullstack.customerservice")
@@ -40,8 +42,11 @@ public class CustomerServiceApplication extends SpringBootServletInitializer {
 	@GetMapping(path = "/getCustomerByFirstName")
 	public ResponseEntity<Customer> getCustomerByFirstName(String firstName){
 		try{
+			log.debug("getCustomerByFirstName requested");
 			Optional<Customer> customerReturned = customerLogic.getCustomerByFirstName(firstName);
-			return customerReturned.map(customer -> ResponseEntity.status(HttpStatus.OK).body(customer)).orElseGet(() -> ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null));
+
+			if(customerReturned.isPresent()) return ResponseEntity.status(HttpStatus.OK).body(customerReturned.get());
+			else return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
 		} catch(RuntimeException e){
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
