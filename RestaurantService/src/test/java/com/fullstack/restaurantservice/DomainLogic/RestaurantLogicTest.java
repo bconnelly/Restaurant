@@ -4,6 +4,7 @@ import com.fullstack.restaurantservice.DataEntities.CustomerRecord;
 import com.fullstack.restaurantservice.DataEntities.OrderRecord;
 import com.fullstack.restaurantservice.DataEntities.TableRecord;
 import com.fullstack.restaurantservice.RestDataRetrieval.RestFetcher;
+import com.fullstack.restaurantservice.Utilities.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -39,7 +40,7 @@ public class RestaurantLogicTest {
     ));
 
     @BeforeEach
-    void setup(){
+    void setup() throws EntityNotFoundException {
 
         ReflectionTestUtils.setField(restaurantLogic, "restFetcher", fetcherMock);
 
@@ -48,7 +49,7 @@ public class RestaurantLogicTest {
     }
 
     @Test
-    void seatCustomer(){
+    void seatCustomer() throws EntityNotFoundException {
         clearInvocations(fetcherMock);
 
         CustomerRecord expectedSeatedCustomer = CustomerRecord.builder()
@@ -65,12 +66,11 @@ public class RestaurantLogicTest {
     }
 
     @Test
-    void getOpenTablesTest() {
+    void getOpenTablesTest() throws EntityNotFoundException {
         clearInvocations(fetcherMock);
 
         List<TableRecord> expectedOpenTables = new ArrayList<>(Arrays.asList(
-                TableRecord.builder().tableNumber(3).capacity(6).build()
-        ));
+                TableRecord.builder().tableNumber(3).capacity(6).build()));
 
         List<TableRecord> returnedTables = restaurantLogic.getOpenTables();
 
@@ -80,7 +80,7 @@ public class RestaurantLogicTest {
     }
 
     @Test
-    void submitOrderTest(){
+    void submitOrderTest() throws EntityNotFoundException {
         clearInvocations(fetcherMock);
 
         OrderRecord expectedRecord = OrderRecord.builder()
@@ -93,7 +93,12 @@ public class RestaurantLogicTest {
         when(fetcherMock.customerExists("alice")).thenReturn(true);
         when(fetcherMock.submitOrder("alice", "food", 1, 10.00f)).thenReturn(expectedRecord);
 
-        OrderRecord returnedOrder = restaurantLogic.submitOrder("alice", "food", 1, 10.00f);
+        OrderRecord returnedOrder;
+        try {
+            returnedOrder = restaurantLogic.submitOrder("alice", "food", 1, 10.00f);
+        } catch (EntityNotFoundException e) {
+            throw new RuntimeException(e);
+        }
 
         assert(expectedRecord.equals(returnedOrder));
         verify(fetcherMock, times(1)).getCustomerByName(anyString());

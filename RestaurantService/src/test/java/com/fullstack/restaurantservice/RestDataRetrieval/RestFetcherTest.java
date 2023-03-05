@@ -7,6 +7,7 @@ import com.fullstack.restaurantservice.DataEntities.CustomerRecord;
 
 import com.fullstack.restaurantservice.DataEntities.OrderRecord;
 import com.fullstack.restaurantservice.DataEntities.TableRecord;
+import com.fullstack.restaurantservice.Utilities.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -42,7 +43,7 @@ class RestFetcherTest {
     }
 
     @Test
-    void getAllCustomers() {
+    void getAllCustomers() throws EntityNotFoundException {
         CustomerRecord[] expectedResponse = {CustomerRecord.builder().firstName("test person")
                         .address("test address").cash(12.34f).tableNumber(1).build(),
                 CustomerRecord.builder().firstName("another person")
@@ -57,7 +58,7 @@ class RestFetcherTest {
     }
 
     @Test
-    void getCustomerByName() {
+    void getCustomerByName() throws EntityNotFoundException {
         CustomerRecord expectedResponse = CustomerRecord.builder().firstName("test person")
                 .address("test address").cash(9.87f).tableNumber(1).build();
 
@@ -121,7 +122,7 @@ class RestFetcherTest {
     }
 
     @Test
-    void getAllTables() {
+    void getAllTables() throws EntityNotFoundException {
         TableRecord[] expectedTables = {TableRecord.builder().tableNumber(1).capacity(2).build(),
                                     TableRecord.builder().tableNumber(2).capacity(2).build(),
                                     TableRecord.builder().tableNumber(3).capacity(4).build()};
@@ -134,5 +135,20 @@ class RestFetcherTest {
         assertEquals(new ArrayList<>(Arrays.asList(expectedTables)), returnedTables);
     }
 
+    @Test
+    void bootCustomer() {
+        CustomerRecord misbehavingCustomer = CustomerRecord.builder()
+                .firstName("alice").address("123 whatever st").cash(32.10f).tableNumber(1).build();
 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(headers);
+
+        when(template.postForObject(anyString(), eq(request), eq(CustomerRecord.class))).thenReturn(misbehavingCustomer);
+
+        CustomerRecord returnedCustomer = restFetcher.bootCustomer("alice");
+
+        verify(template, times(1)).postForObject(anyString(), eq(request), eq(CustomerRecord.class));
+        assertEquals(misbehavingCustomer, returnedCustomer);
+    }
 }

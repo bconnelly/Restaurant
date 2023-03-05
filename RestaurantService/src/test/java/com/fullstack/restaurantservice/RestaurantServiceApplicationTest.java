@@ -1,13 +1,15 @@
 package com.fullstack.restaurantservice;
 
+import com.fullstack.restaurantservice.Utilities.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 class RestaurantServiceApplicationTest {
 
+    @Autowired
+    RestaurantServiceApplication app;
     @Test
     void passThrough() {
     }
@@ -18,5 +20,10 @@ class RestaurantServiceApplicationTest {
 
     @Test
     void getCustomersByDish() {
+    }
+
+    @Test
+    void submitOrder() throws EntityNotFoundException {
+//        app.submitOrder("name", "food", 1, 1.00f);
     }
 }
