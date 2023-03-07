@@ -77,3 +77,5 @@ public class RestaurantServiceApplication extends SpringBootServletInitializer {
         return ResponseEntity.status(HttpStatus.OK).body(restaurantLogic.bootCustomer(firstName));
     }
 }
+
+//testing github jenkins integration
